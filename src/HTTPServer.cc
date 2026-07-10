@@ -788,6 +788,37 @@ HTTPServer::HTTPServer(std::shared_ptr<ServerState> state)
           game_json.emplace("Mode", name_for_mode(l->mode));
           game_json.emplace("Difficulty", name_for_difficulty(l->difficulty));
           game_json.emplace("Quest", l->quest ? l->quest->json() : phosg::JSON(nullptr));
+
+          // Where the party currently is: the floor the most players occupy
+          // (ties resolve to the lowest floor). Lets the dashboard show
+          // "Forest 1" / "Pioneer 2" (InLobby => the city/hub) instead of only
+          // quest status. Floor is best-effort; a bad floor leaves Area null.
+          std::map<uint32_t, size_t> floor_counts;
+          for (const auto& lc : l->clients) {
+            if (lc) {
+              floor_counts[lc->floor]++;
+            }
+          }
+          if (!floor_counts.empty()) {
+            uint32_t best_floor = floor_counts.begin()->first;
+            size_t best_n = 0;
+            for (const auto& [fl, n] : floor_counts) {
+              if (n > best_n) {
+                best_n = n;
+                best_floor = fl;
+              }
+            }
+            game_json.emplace("Floor", best_floor);
+            try {
+              const auto& fd = FloorDefinition::get(l->episode, static_cast<uint8_t>(best_floor));
+              game_json.emplace("Area", fd.in_game_name);
+              game_json.emplace("InLobby",
+                  static_cast<bool>(fd.flags & (FloorDefinition::CITY | FloorDefinition::LOBBY)));
+            } catch (const std::exception&) {
+              game_json.emplace("Area", phosg::JSON(nullptr));
+              game_json.emplace("InLobby", phosg::JSON(nullptr));
+            }
+          }
         }
         games_json.emplace_back(std::move(game_json));
       }
