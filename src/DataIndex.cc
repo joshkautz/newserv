@@ -72,11 +72,9 @@ DataIndex::DataIndex::QuestF960Result::QuestF960Result(
 
 DataIndex::DataIndex(const std::string& config_filename)
     // creation_time is reported as the server StartTime by the /y/summary
-    // endpoint (HTTPServer.cc). Upstream declares it but never initializes
-    // it, so it was 0 — making StartTime read as the Unix epoch and uptime
-    // as ~now(). Stamp it at construction (= server boot / data reload).
-    : creation_time(phosg::now()),
-      config_filename(config_filename) {}
+    // endpoint (HTTPServer.cc). Upstream now initializes it too (converging on
+    // our earlier fix), so StartTime and uptime are correct.
+    : creation_time(phosg::now()), config_filename(config_filename) {}
 
 uint32_t DataIndex::connect_address_for_client(std::shared_ptr<Client> c) const {
   {
@@ -1137,7 +1135,7 @@ void DataIndex::load_config_early() {
         for (size_t z = 0; z < 4; z++) {
           levels[z] = ep_it.second->get_int(z) - 1;
         }
-        switch (episode_for_token_name(ep_it.first)) {
+        switch (episode_for_name(ep_it.first)) {
           case Episode::EP1:
             dest[0] = levels;
             break;
