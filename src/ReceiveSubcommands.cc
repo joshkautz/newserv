@@ -2294,6 +2294,16 @@ static asio::awaitable<void> on_pick_up_item_generic(
         should_send_global_notif = s->data->notify_server_for_item_primary_identifiers_v4.count(pi);
       }
 
+      // The dashboard's "rare drops" ticker reads NotifyServer, so only ever
+      // announce genuinely-rare items server-wide. The identifier lists above
+      // can include common items, and GM-spawned $item drops carry the notify
+      // flag regardless of rarity, so also require newserv's authoritative
+      // is_item_rare() check — a plain Sword is not rare and must not surface as
+      // a "rare drop".
+      if (should_send_global_notif && !s->data->item_parameter_table(c->version())->is_item_rare(fi->data)) {
+        should_send_global_notif = false;
+      }
+
       if (should_send_game_notif || should_send_global_notif) {
         std::string p_name = p->disp.visual.name.decode();
         std::string desc_ingame = s->data->describe_item(c->version(), fi->data, ItemNameIndex::Flag::INCLUDE_PSO_COLOR_ESCAPES);
