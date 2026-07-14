@@ -1371,6 +1371,18 @@ HTTPServer::HTTPServer(std::shared_ptr<ServerState> state)
           {"Name", ch->disp.visual.name.decode()},
           {"Class", name_for_char_class(ch->disp.visual.sh.char_class)},
           {"SectionID", name_for_section_id(ch->disp.visual.sh.section_id)},
+          // Visual config for the dashboard's character-model previews. Mirrors
+          // the online-clients endpoint above so both sources agree.
+          {"Costume", ch->disp.visual.sh.costume.load()},
+          {"Skin", ch->disp.visual.sh.skin.load()},
+          {"Face", ch->disp.visual.sh.face.load()},
+          {"Head", ch->disp.visual.sh.head.load()},
+          {"Hair", ch->disp.visual.sh.hair.load()},
+          {"HairR", ch->disp.visual.sh.hair_r.load()},
+          {"HairG", ch->disp.visual.sh.hair_g.load()},
+          {"HairB", ch->disp.visual.sh.hair_b.load()},
+          {"ProportionX", ch->disp.visual.sh.proportion_x.load()},
+          {"ProportionY", ch->disp.visual.sh.proportion_y.load()},
           {"Level", static_cast<uint32_t>(ch->disp.stats.level.load() + 1)},
           {"EXP", ch->disp.stats.exp.load()},
           {"Meseta", ch->disp.stats.meseta.load()},
